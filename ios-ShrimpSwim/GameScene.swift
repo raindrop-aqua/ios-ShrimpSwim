@@ -10,9 +10,20 @@ import SpriteKit
 
 class GameScene: SKScene {
     
+    struct ColliderType {
+        static let Player: UInt32 = (1 << 0)
+        static let World: UInt32 = (1 << 1)
+        static let Coral: UInt32 = (1 << 2)
+        static let Score: UInt32 = (1 << 3)
+        static let None: UInt32 = (1 << 4)
+    }
+    
     var baseNode: SKNode!
     var coralNode: SKNode!
 
+    
+    
+    
     override func didMove(to view: SKView) {
         baseNode = SKNode()
         baseNode.speed = 1.0
@@ -23,6 +34,7 @@ class GameScene: SKScene {
         
         self.setupBackground()
         self.setupBackgroundRock()
+        self.setupCeilingAndLand()
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -87,6 +99,45 @@ class GameScene: SKScene {
             sprite.run(repeatForeverAboveAnim)
             baseNode.addChild(sprite)
         }
+    }
+    
+    func setupCeilingAndLand() {
+        // 地面画像の読み込み
+        let land = SKTexture(imageNamed: "land")
+        land.filteringMode = .nearest
+        // 必要枚数の算出
+        var needNumber = 2.0 + (self.frame.size.width / land.size().width)
+        // アニメーションを作成
+        let moveLandAnim = SKAction.moveBy(x: -land.size().width, y: 0.0, duration: TimeInterval(land.size().width / 20.0))
+        let resetLandAnim = SKAction.moveBy(x: land.size().width, y: 0.0, duration: 0.0)
+        let repeatForeverLandAnim = SKAction.repeatForever(SKAction.sequence([moveLandAnim, resetLandAnim]))
 
+        for i in 0...Int(needNumber) {
+            let sprite = SKSpriteNode(texture: land)
+            sprite.position = CGPoint(x: CGFloat(i) * sprite.size.width, y: sprite.size.height / 2.0)
+            // 画像に物理シミュレーションを設定
+            sprite.physicsBody = SKPhysicsBody(texture: land, size: land.size())
+            sprite.physicsBody?.isDynamic = false
+            sprite.physicsBody?.categoryBitMask = ColliderType.World
+            sprite.run(repeatForeverLandAnim)
+            baseNode.addChild(sprite)
+        }
+
+        // 地面画像の読み込み
+        let ceiling = SKTexture(imageNamed: "ceiling")
+        ceiling.filteringMode = .nearest
+        // 必要枚数の算出
+        needNumber = 2.0 + (self.frame.size.width / ceiling.size().width)
+        // アニメーションを作成
+        for i in 0...Int(needNumber) {
+            let sprite = SKSpriteNode(texture: ceiling)
+            sprite.position = CGPoint(x: CGFloat(i) * sprite.size.width, y: self.frame.size.height - sprite.size.height / 2.0)
+            // 画像に物理シミュレーションを設定
+            sprite.physicsBody = SKPhysicsBody(texture: ceiling, size: ceiling.size())
+            sprite.physicsBody?.isDynamic = false
+            sprite.physicsBody?.categoryBitMask = ColliderType.World
+            sprite.run(repeatForeverLandAnim)
+            baseNode.addChild(sprite)
+        }
     }
 }
