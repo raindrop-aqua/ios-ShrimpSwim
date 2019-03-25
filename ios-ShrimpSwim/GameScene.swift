@@ -39,9 +39,10 @@ class GameScene: SKScene {
         
         // 物理シミュレーションON
         self.physicsWorld.gravity = CGVector(dx: 0.0, dy: -2.0)
+        self.physicsWorld.contactDelegate = self
         // 親ノードを作成
         baseNode = SKNode()
-        baseNode.speed = 1.0
+        baseNode.speed = 5.0
         self.addChild(baseNode)
         
         coralNode = SKNode()
@@ -264,5 +265,45 @@ class GameScene: SKScene {
         scoreLabelNode.text = String(score)
         
         self.addChild(scoreLabelNode)
+    }
+}
+
+extension GameScene : SKPhysicsContactDelegate {
+    func didBegin(_ contact: SKPhysicsContact) {
+        if baseNode.speed <= 0.0 {
+            return
+        }
+
+        let rawScoreType = ColliderType.Score
+        let rawNoneType = ColliderType.None
+        if (contact.bodyA.categoryBitMask & rawScoreType) == rawScoreType ||
+           (contact.bodyB.categoryBitMask & rawScoreType) == rawScoreType {
+            // スコアの加算と表示
+            score = score + 1
+            scoreLabelNode.text = String(score)
+            
+            let scaleUpAnim = SKAction.scale(to: 1.5, duration: 0.1)
+            let scaleDownAnim = SKAction.scale(to: 1.0, duration: 0.1)
+            scoreLabelNode.run(SKAction.sequence([scaleUpAnim, scaleDownAnim]))
+            
+            if (contact.bodyA.categoryBitMask & rawScoreType) == rawScoreType {
+                contact.bodyA.categoryBitMask = ColliderType.None
+                contact.bodyA.contactTestBitMask = ColliderType.None
+            } else {
+                contact.bodyB.categoryBitMask = ColliderType.None
+                contact.bodyB.contactTestBitMask = ColliderType.None
+            }
+        } else if (contact.bodyA.categoryBitMask & rawScoreType) == rawNoneType ||
+                  (contact.bodyB.categoryBitMask & rawScoreType) == rawNoneType {
+            // Nothing
+        } else {
+            baseNode.speed = 0
+            
+            player.physicsBody?.collisionBitMask = ColliderType.World
+            let rolling = SKAction.rotate(toAngle: CGFloat(Float.pi) * player.position.y * 0.01, duration: 1.0)
+            player.run(rolling, completion: {
+                self.player.speed = 0.0
+            })
+        }
     }
 }
