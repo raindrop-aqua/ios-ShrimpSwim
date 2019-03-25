@@ -23,15 +23,22 @@ class GameScene: SKScene {
         static let Score: UInt32  = (1 << 3)
         static let None: UInt32   = (1 << 4)
     }
-    
+    // すべてのノードを格納するルートノード
     var baseNode: SKNode!
+    // サンゴを格納するノード
     var coralNode: SKNode!
-
+    // プレイヤーノード
     var player: SKSpriteNode!
+    // スコア関連
+    var scoreLabelNode: SKLabelNode!
+    var score: UInt32!
     
     override func didMove(to view: SKView) {
-        self.physicsWorld.gravity = CGVector(dx: 0.0, dy: -2.0)
+        // スコア初期化
+        score = 0
         
+        // 物理シミュレーションON
+        self.physicsWorld.gravity = CGVector(dx: 0.0, dy: -2.0)
         // 親ノードを作成
         baseNode = SKNode()
         baseNode.speed = 1.0
@@ -45,6 +52,7 @@ class GameScene: SKScene {
         self.setupCeilingAndLand()
         self.setupPlayer()
         self.setupCoral()
+        self.setupScoreLabel()
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -60,7 +68,7 @@ class GameScene: SKScene {
     override func update(_ currentTime: TimeInterval) {
     }
     
-    func setupBackground() {
+    private func setupBackground() {
         // 背景画像の読み込み
         let texture = SKTexture(imageNamed: "background")
         texture.filteringMode = .nearest
@@ -80,7 +88,7 @@ class GameScene: SKScene {
         }
     }
     
-    func setupBackgroundRock() {
+    private func setupBackgroundRock() {
         // 岩山画像の取り込み
         let under = SKTexture(imageNamed: "rock_under")
         under.filteringMode = .nearest
@@ -118,7 +126,7 @@ class GameScene: SKScene {
         }
     }
     
-    func setupCeilingAndLand() {
+    private func setupCeilingAndLand() {
         // 地面画像の読み込み
         let land = SKTexture(imageNamed: "land")
         land.filteringMode = .nearest
@@ -158,7 +166,7 @@ class GameScene: SKScene {
         }
     }
 
-    func setupPlayer() {
+    private func setupPlayer() {
         var playerTexture = [SKTexture]()
         
         for imageName in Constants.PlayerImages {
@@ -188,7 +196,7 @@ class GameScene: SKScene {
         self.addChild(player)
     }
     
-    func setupCoral() {
+    private func setupCoral() {
         let coralUnder = SKTexture(imageNamed: "coral_under")
         coralUnder.filteringMode = .linear
         let coralAbove = SKTexture(imageNamed: "coral_above")
@@ -246,5 +254,15 @@ class GameScene: SKScene {
         let repeatForeverAnim = SKAction.repeatForever(SKAction.sequence([newCoralAnim, delayAnim]))
         
         self.run(repeatForeverAnim)
+    }
+    
+    private func setupScoreLabel() {
+        scoreLabelNode = SKLabelNode(fontNamed: "Arial Bold")
+        scoreLabelNode.fontColor = UIColor.black
+        scoreLabelNode.position = CGPoint(x: self.frame.size.width / 2.0, y: self.frame.size.height * 0.9)
+        scoreLabelNode.zPosition = 100.0
+        scoreLabelNode.text = String(score)
+        
+        self.addChild(scoreLabelNode)
     }
 }
