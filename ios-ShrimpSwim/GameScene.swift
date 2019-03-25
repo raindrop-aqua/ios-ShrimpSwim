@@ -42,7 +42,7 @@ class GameScene: SKScene {
         self.physicsWorld.contactDelegate = self
         // 親ノードを作成
         baseNode = SKNode()
-        baseNode.speed = 5.0
+        baseNode.speed = 0.5
         self.addChild(baseNode)
         
         coralNode = SKNode()
@@ -57,13 +57,25 @@ class GameScene: SKScene {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for touch in touches {
-            let location = touch.location(in: self)
+        if 0.0 < baseNode .speed {
+            for _ in touches {
+                player.physicsBody?.velocity = CGVector.zero
+                player.physicsBody?.applyImpulse(CGVector(dx: 0.0, dy: 23.0))
+            }
+        } else if baseNode.speed == 0.0 && player.speed == 0.0 {
+            coralNode.removeAllChildren()
             
+            score = 0
+            scoreLabelNode.text = String(score)
+            
+            
+            player.position = CGPoint(x: self.frame.size.width * 0.35, y: self.frame.size.height * 0.6)
             player.physicsBody?.velocity = CGVector.zero
-            player.physicsBody?.applyImpulse(CGVector(dx: 0.0, dy: 23.0))
+            player.physicsBody?.collisionBitMask = ColliderType.World | ColliderType.Coral
+            player.zRotation = 0.0
+            player.speed = 1.0
+            baseNode.speed = 1.0
         }
-    
     }
     
     override func update(_ currentTime: TimeInterval) {
